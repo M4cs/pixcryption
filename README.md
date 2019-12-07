@@ -5,6 +5,8 @@ Pixel Safe Encryption - Currently in Development
 
 Pixcryption's goal is to offer a new form of steganography/encryption through imagery. It uses a random seeded UUID to generate a user_key which matches RGB perfect values to match to unicode characters. These are stored in a `user_key.png` file which is used to encrypt and decrypt messages. The speed is getting there but there is 100% room for improvement. I have been working on this for 2 months and BY NO MEANS IS THIS A SECURE SOLUTION YET. It has Pretty Good Security but I'm sure there are plenty of flaws to be found. 
 
+Repl.it Demo: https://repl.it/@M4cs/Pixcryption (Use this if you don't want to run it on your local machine ((free Google Cloud instances!!)))
+
 # Requirements
 
 - Python 3.6+
