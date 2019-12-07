@@ -1,4 +1,4 @@
-# pixcryption
+# Pixcryption
 Pixel Safe Encryption - Currently in Development
 
 # Goal
