@@ -39,10 +39,9 @@ def create_user_key(uuid):
   print('Finished....')
   return pixels, key_list
 
-def get_list_from_key(imdata):
-  im = Image.open(imdata)
-  pixels = list(im.getdata())
-  return pixels
+def get_list_from_key(image_path):
+  im = Image.open(image_path)
+  return list(im.getdata())
 
 def encrypt_w_user_key(key_list, string):
   try:
@@ -74,23 +73,15 @@ def encrypt_w_user_key(key_list, string):
 def decrypt_with_user_key(user_key, image_path):
   try:
     # get image pixels
-    str_image = Image.open(image_path)
-    str_pixels = list(str_image.getdata())
+    str_pixels = get_list_from_key(image_path)
     # get user pixels
-    user_key_im = Image.open(user_key)
-    user_key_pixels = list(user_key_im.getdata())
-    count = 0
+    user_key_pixels = get_list_from_key(user_key)
     user_map = [None] * len(user_key_pixels)
-    for i in user_key_pixels:
-      user_map[count] = i
-      count += 1
-    string = ""
+    str_list = []
     for i in str_pixels:
-      if i == (0,0,0):
-        string += ""
-      else:
-        string += chr(user_map.index(i))
-    print(string)
+      if i != (0,0,0):
+        str_list.append(chr(user_key_pixels.index(i)))
+    print("".join(str_list))
     
   except Exception as e:
     print(e)
