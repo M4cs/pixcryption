@@ -81,7 +81,7 @@ def decrypt_with_user_key(user_key, image_path):
     for i in str_pixels:
       if i != (0,0,0):
         str_list.append(chr(user_key_pixels.index(i)))
-    print("".join(str_list))
+    return "".join(str_list)
     
   except Exception as e:
     print(e)
