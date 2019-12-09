@@ -1,0 +1,9 @@
+[tool]
+[tool.poetry]
+authors = ["Your Name <you@example.com>"]
+name = "pixcryption"
+version = "0.0.0"
+[tool.poetry.dependencies]
+numpy = "*"
+pillow = "*"
+python = "^3.7"
