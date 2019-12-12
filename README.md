@@ -43,3 +43,5 @@ With these you can generate a user key, grab a key_list from a user key, and enc
 # Contribution
 
 If you would like to contribute to pixcryption please submit a pull request. Any help is welcome and all PRs will be reviewed.
+
+Check [CONTRIBUTING.md](https://github.com/M4cs/pixcryption/blob/master/CONTRIBUTING.md) for more information.
