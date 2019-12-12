@@ -1,5 +1,5 @@
 # Pixcryption
-Pixel Safe Encryption - Currently in Development
+Pixel Safe Encryption - **Now with AES Encryption on Strings**
 
 ![Stars](https://img.shields.io/github/stars/M4cs/pixcryption) ![Issues](https://img.shields.io/github/issues/M4cs/pixcryption) ![License](https://img.shields.io/github/license/M4cs/pixcryption) [![Run on Repl.it](https://repl.it/badge/github/M4cs/pixcryption)](https://repl.it/github/M4cs/pixcryption)
 
