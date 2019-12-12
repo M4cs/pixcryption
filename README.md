@@ -13,6 +13,13 @@ Pixcryption's goal is to offer a new form of steganography/encryption through im
 - Python 3.6+
 - Pillow
 - Numpy
+- PyCrypto
+
+# Development
+
+To install run either `pip3 install -r requirements.txt` or `poetry install` if you use poetry for dependency management.
+
+To generate a user_key for testing run `python3 test.py` once and then to test encryption/decryption with said user_key run the `test.py` file again.
 
 # Usage
 
