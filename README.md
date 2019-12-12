@@ -5,7 +5,7 @@ Pixel Safe Encryption - **Now with AES Encryption on Strings**
 
 # Goal
 
-Pixcryption's goal is to offer a new form of steganography/encryption through imagery. It uses a random seeded UUID to generate a user_key which matches RGB perfect values to match to unicode characters. These are stored in a `user_key.png` file which is used to encrypt and decrypt messages. The speed is getting there but there is 100% room for improvement. I have been working on this for 2 months and BY NO MEANS IS THIS A SECURE SOLUTION YET. It has Pretty Good Security but I'm sure there are plenty of flaws to be found. 
+Pixcryption's goal is to offer a new form of steganography/encryption through imagery. It uses a random seeded UUID to generate a user_key which matches RGB perfect values to match to unicode characters. These are stored in a `user_key.png` file which is used to encrypt and decrypt messages. The speed is getting there but there is 100% room for improvement. I have been working on this for 2 months now and with contributions from @TotallyNotChase he was able to implement AES encryption to the strings passed into Pixcryptions image cipher.
 
 
 # Requirements
