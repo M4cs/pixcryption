@@ -9,6 +9,15 @@ Run a Remote Environment To Test Pixcryption: [![Run on Repl.it](https://repl.it
 
 Pixcryption's goal is to offer a new form of steganography/encryption through imagery. It uses a random seeded UUID to generate a user_key which matches RGB perfect values to match to unicode characters. These are stored in a `user_key.png` file which is used to encrypt and decrypt messages. The speed is getting there but there is 100% room for improvement. I have been working on this for 2 months now and with contributions from @TotallyNotChase he was able to implement AES encryption to the strings passed into Pixcryptions image cipher.
 
+# Example Results
+
+<p align="center">
+  <a align="center"><b>User Key (Compressed in README):</b></a></br>
+  <a align="center"><img src="https://github.com/M4cs/pixcryption/blob/master/examples/userkey.png?raw=true" width="50%"></a></br>
+  <a align="center"><b>Encrypted Message (Uncompressed):</b></a></br>
+  <a align="center"><img src="https://github.com/M4cs/pixcryption/blob/master/examples/example_enc_msg.png?raw=true"></a></br>
+  <a align="center">Hi my name is Max and this is an encrypted image that decrypts into a string. I call it pixelsafe encryption and plan on making it into an awesome thing.</a>
+</p>
 
 # Requirements
 
