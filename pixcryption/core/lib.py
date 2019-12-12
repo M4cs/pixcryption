@@ -1,10 +1,35 @@
-from PIL import Image
 import numpy as np
+from PIL import Image
 from uuid import uuid4
 from math import sqrt
-import time
+from Crypto.Cipher import AES
+from Crypto import Random
+from base64 import b64encode
+from base64 import b64decode
 import itertools
 import random
+import os
+
+def byte_to_tuples(tuple_size, byte_string, fill_value=None):
+  """
+  This method converts a byte string into a list of tuples of integers
+  """
+  return list(itertools.zip_longest(*[iter(byte_string)]*tuple_size, fillvalue=fill_value))
+
+def tuples_to_bytes(key_list):
+  """
+  This method converts a list of integers into a byte string
+  """
+  return bytes(key_list)
+
+def extract_bytetuple(list_of_tuples):
+  """
+  This method breaks down the tuples in a list of tuples and returns a list of 
+  length 16. This is done since the byte_string is always of size 16 bytes
+  """
+  bytelist = list(itertools.chain(*list_of_tuples))
+  del bytelist[16:]
+  return bytelist
 
 def create_user_key(uuid):
   print('Preparing To Generate User Key (This may take a while but will only run once!)')
@@ -14,14 +39,23 @@ def create_user_key(uuid):
   random.seed(uuid)
   random.shuffle(allc)
   print('Randomized...')
+  print('Randomizing AES Key...')
+  # Generating a cryptographically secure byte string of length 16
+  AES_key = Random.get_random_bytes(AES.key_size[0])
+  AESls = byte_to_tuples(3, AES_key, 0)
+  print('Randomized...')
   max_it = 1114112
-  w = int( 1114112 / sqrt(1114112)) + 1
+  w = int(sqrt(max_it)) + 1
   pixels = []
-  key_list = [None] * 1114112
+  key_list = [None] * max_it
   fresh = [None] * w
   count = 0
   total = 0
   print('Generating User Key...')
+  for i in AESls:
+  # Prepending the AES list (list of tuples of integers)
+    fresh[count] = i
+    count += 1
   for i in allc:
     if total == max_it:
       break
@@ -43,24 +77,43 @@ def get_list_from_key(image_path):
   im = Image.open(image_path)
   return list(im.getdata())
 
-def encrypt_w_user_key(key_list, string):
+def encrypt_w_user_key(key_list, source_string):
+  # Converting the string into a byte string
+  source_string = source_string.encode()
   try:
-    w = int(len(string) / sqrt(len(string))) + 1
+  # Generating a cryptographically secure byte string of length 16
+    IV = Random.get_random_bytes(AES.block_size)
+    IVls = byte_to_tuples(3, IV, 0)
+    AES_key = tuples_to_bytes(extract_bytetuple(key_list))
+    cipher = AES.new(AES_key, AES.MODE_CFB, IV)
+    ciphertxt = cipher.encrypt(source_string)
+  # ciphertxt is a byte string
+    encrypted_string = b64encode(ciphertxt).decode()
+  # ciphertext is encoded into another byte string and then decoded into a string
+  except Exception as e:
+    return False, e
+  try:
+    w = int(sqrt(len(encrypted_string))) + 1
     pixels = []
-    fresh = []
-    for i in string:
-        if len(fresh) == w:
+    fresh = [None] * w
+    count = 0
+    for i in IVls:
+    # Prepending the AES list (list of tuples of integers)
+      fresh[count] = i
+      count += 1
+    for i in encrypted_string:
+        if count == w:
             pixels.append(fresh)
-            fresh = []
-        fresh.append(key_list[ord(i)])
+            fresh = [None] * w
+            count = 0
+        fresh[count] = key_list[ord(i)]
+        count += 1
     pixels.append(fresh)
 
-    if len(pixels[-1]) != w:
-        num_left = int(w - len(pixels[-1]))
-        count = 0
-        while count < num_left:
-            pixels[-1].append((0, 0, 0))
-            count += 1
+    while int(w - count) != 0:
+    # Filling in the [None] tuples
+      pixels[-1][count] = (0, 0, 0)
+      count += 1
 
     array = np.array(pixels, dtype=np.uint8)
     uid = str(uuid4()).split('-')[0]
@@ -74,14 +127,26 @@ def decrypt_with_user_key(user_key, image_path):
   try:
     # get image pixels
     str_pixels = get_list_from_key(image_path)
+    IV = tuples_to_bytes(extract_bytetuple(str_pixels))
     # get user pixels
     user_key_pixels = get_list_from_key(user_key)
+    AES_key = tuples_to_bytes(extract_bytetuple(user_key_pixels))
     user_map = [None] * len(user_key_pixels)
     str_list = []
+    skip = 0
     for i in str_pixels:
+    # The first 6 tuples are the IV values
+      if skip < 6:
+        skip += 1
+        continue
       if i != (0,0,0):
         str_list.append(chr(user_key_pixels.index(i)))
-    return "".join(str_list)
-    
+
+    # Undo what was done in encrypt
+    encrypted_string = "".join(str_list)
+    ciphertxt = b64decode(encrypted_string)
+    cipher = AES.new(AES_key, AES.MODE_CFB, IV)
+
+    return cipher.decrypt(ciphertxt).decode()
   except Exception as e:
     print(e)
