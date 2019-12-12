@@ -35,4 +35,4 @@ if __name__ == "__main__":
     print(decrypt_with_user_key('user_key.png', message))
     print('Done!')
 
-    test_decryption_works_fuzzy()
+    #test_decryption_works_fuzzy()
