@@ -1,9 +1,9 @@
 # Pixcryption
 Pixel Safe Encryption - **Now with AES Encryption on Strings**
 
-![Stars](https://img.shields.io/github/stars/M4cs/pixcryption) ![Issues](https://img.shields.io/github/issues/M4cs/pixcryption) ![License](https://img.shields.io/github/license/M4cs/pixcryption) [!
+![Stars](https://img.shields.io/github/stars/M4cs/pixcryption) ![Issues](https://img.shields.io/github/issues/M4cs/pixcryption) ![License](https://img.shields.io/github/license/M4cs/pixcryption)
 
-Run a Remote Environment To Test Pixcryption: [Run on Repl.it](https://repl.it/badge/github/M4cs/pixcryption)](https://repl.it/github/M4cs/pixcryption)
+Run a Remote Environment To Test Pixcryption: [![Run on Repl.it](https://repl.it/badge/github/M4cs/pixcryption)](https://repl.it/github/M4cs/pixcryption)
 
 # Goal
 
