@@ -1,9 +1,10 @@
 [tool]
 [tool.poetry]
-authors = ["Your Name <you@example.com>"]
+authors = ["Max Bridgland <mabridgland@protonmail.com>"]
 name = "pixcryption"
-version = "0.0.0"
+version = "0.0.1"
 [tool.poetry.dependencies]
 numpy = "*"
 pillow = "*"
+pycrypto = "*"
 python = "^3.7"
