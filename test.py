@@ -1,8 +1,6 @@
 from uuid import uuid4
 from pixcryption.core.lib import *
 import os
-import random
-import string
 
 if __name__ == "__main__":
   src_str = 'Hi my name is Max and this is an encrypted image that decrypts into a string. I call it pixelsafe encryption and plan on making it into an awesome thing.'
