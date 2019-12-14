@@ -9,6 +9,7 @@ from base64 import b64decode
 import itertools
 import random
 import os
+import traceback
 
 def byte_to_tuples(tuple_size, byte_string, fill_value=None):
   """
@@ -137,7 +138,7 @@ def encrypt_w_user_key(key_list, source_string):
     
     return True, 'enc_msg_{}.png'.format(uid)
   except Exception as e:
-    print(e)
+    traceback.print_exc()
     return False, ""
   
 def decrypt_with_user_key(user_key, image_path):
@@ -167,5 +168,5 @@ def decrypt_with_user_key(user_key, image_path):
 
     return True, cipher.decrypt_and_verify(ciphertxt, mac).decode()
   except Exception as e:
-    print(e)
+    traceback.print_exc()
     return False, ""
