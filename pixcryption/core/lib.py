@@ -47,8 +47,8 @@ def extract_bytetuple(list_of_tuples, start, length):
   This method breaks down the tuples in a list of tuples and returns a list of 
   of the first n number of integers from p, where;
 
-  n = length, 16 for AES_key and mac and 15 for NONCE
-  p = start, 0 for AES_key and NONCE and 15 for mac
+  n = length, 16 for AES_key and MAC and 15 for NONCE
+  p = start, 0 for AES_key and NONCE and 15 for MAC
   """
   bytelist = list(itertools.chain(*list_of_tuples))
   return bytelist[start:start+length]
@@ -116,12 +116,12 @@ def encrypt_w_user_key(key_list, source_string):
     1) The source string is converted into a byte string
     2) A NONCE is generated and the AES_key is retrieved from user_key img
     3) A list is generated called NONCEls, this just a list of tuples form of NONCE
-    4) The source_string is encrypted in AES OCB mode, which returns the mac byte 
+    4) The source_string is encrypted in AES OCB mode, which returns the MAC byte 
        string
-    5) macls is created in the same method as NONCEls
+    5) MACls is created in the same method as NONCEls
     6) The encrypted string is encoded with b64 and converted into a string 
        (from byte_string)
-    7) NONCEls, macls and the appropriate keys for each string char is stored 
+    7) NONCEls, MACls and the appropriate keys for each string char is stored 
        sequentially
     8) Any Empty tuples in the final fresh (list) is filled with (0, 0, 0)
     9) An image is created with the array of pixels
@@ -135,8 +135,8 @@ def encrypt_w_user_key(key_list, source_string):
     NONCEls = byte_to_tuples(3, NONCE, 0)
     AES_key = tuples_to_bytes(extract_bytetuple(key_list, 0, 16))
     cipher = AES.new(AES_key, AES.MODE_OCB, NONCE)
-    ciphertxt, mac = cipher.encrypt_and_digest(source_string)
-    macls = byte_to_tuples(3, mac, 0)
+    ciphertxt, MAC = cipher.encrypt_and_digest(source_string)
+    MACls = byte_to_tuples(3, MAC, 0)
   # ciphertxt is a byte string
     encrypted_string = b64encode(ciphertxt).decode()
   # ciphertext is encoded into another byte string and then decoded into a string
@@ -155,8 +155,8 @@ def encrypt_w_user_key(key_list, source_string):
         count = 0
       fresh[count] = i
       count += 1
-    for i in macls:
-    # Prepending the mac list (list of tuples of integers)
+    for i in MACls:
+    # Prepending the MAC list (list of tuples of integers)
       if count == w:
         pixels.append(fresh)
         fresh = [None] * w
@@ -192,20 +192,20 @@ def decrypt_with_user_key(user_key, image_path):
   """
   This function works in multiple steps:-
 
-    1) The NONCE and mac are extracted from the list of pixel tuples in 
+    1) The NONCE and MAC are extracted from the list of pixel tuples in 
        encrypted string img
     2) The AES_key is retrieved from user_key img
     3) Key_tuples are looked up and their indexes are used to return a 
        character accordingly
     4) The resulting list is then turned into a string and decoded with b64
-    5) This string is now decrypted using AES and verified using the mac
+    5) This string is now decrypted using AES and verified using the MAC
     6) Finally, the resulting string is returned
   """
   try:
     # get image pixels
     str_pixels = get_list_from_key(image_path)
     NONCE = tuples_to_bytes(extract_bytetuple(str_pixels, 0, 15))
-    mac = tuples_to_bytes(extract_bytetuple(str_pixels, 15, 16))
+    MAC = tuples_to_bytes(extract_bytetuple(str_pixels, 15, 16))
     # get user pixels
     user_key_pixels = get_list_from_key(user_key)
     AES_key = tuples_to_bytes(extract_bytetuple(user_key_pixels, 0, 16))
@@ -224,7 +224,7 @@ def decrypt_with_user_key(user_key, image_path):
     encrypted_string = "".join(str_list)
     ciphertxt = b64decode(encrypted_string)
     cipher = AES.new(AES_key, AES.MODE_OCB, NONCE)
-    source_string = cipher.decrypt_and_verify(ciphertxt, mac).decode()
+    source_string = cipher.decrypt_and_verify(ciphertxt, MAC).decode()
 
     return True, source_string   
   except Exception as e:
