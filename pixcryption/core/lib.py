@@ -65,8 +65,8 @@ def extract_bytes_from_tuple(list_of_tuples, start, length):
   This function breaks down the tuples in a list of tuples and returns a list of 
   of the first n number of integers from p, where;
 
-  n = length, 16 for AES_key and mac and 15 for NONCE;
-  p = start, 0 for AES_key and NONCE and 16 for mac;
+  n = length, 16 for AES_key and MAC and 15 for NONCE;
+  p = start, 0 for AES_key and NONCE and 16 for MAC;
 
   Then it converts the list of integers into a byte string and returns it
   """
@@ -83,9 +83,9 @@ def generate_random_pixelTuple(backlog):
   the tuple that exists in that index of the cartesian product
   """
   upper_limit = 256**4
-  index = random.randint(0, upper_limit)
+  index = random.randint(1, upper_limit)
   while index in backlog:
-    index = random.randint(0, upper_limit)
+    index = random.randint(1, upper_limit)
   
   red = floor(index/256**3)
   green = floor(index%256**3/256**2)
@@ -152,14 +152,14 @@ def encrypt_w_user_key(key_list, source_string):
     1) The source string is converted into a byte string
     2) A NONCE is generated and the AES_key is retrieved from user_key img
     3) A list is generated called NONCEls, this just a list of tuples form of NONCE
-    4) The source_string is encrypted in AES OCB mode, which returns the mac byte 
+    4) The source_string is encrypted in AES OCB mode, which returns the MAC byte 
        string
-    5) macls is created in the same method as NONCEls
+    5) MACls is created in the same method as NONCEls
     6) The encrypted string is encoded with b64 and converted into a string 
        (from byte_string)
-    7) NONCEls, macls and the appropriate keys for each string char is stored 
+    7) NONCEls, MACls and the appropriate keys for each string char is stored 
        sequentially
-    8) Any Empty tuples in the final fresh (list) is filled with (0, 0, 0)
+    8) Any Empty tuples in the final fresh (list) is filled with (0, 0, 0, 0)
     9) An image is created with the array of pixels
     10) Finally, the name of the encrypted message image is returned
   """
@@ -228,13 +228,13 @@ def decrypt_with_user_key(user_key, image_path):
   """
   This function works in multiple steps:-
 
-    1) The NONCE and mac are extracted from the list of pixel tuples in 
+    1) The NONCE and MAC are extracted from the list of pixel tuples in 
        encrypted string img
     2) The AES_key is retrieved from user_key img
     3) Key_tuples are looked up and their indexes are used to return a 
        character accordingly
     4) The resulting list is then turned into a string and decoded with b64
-    5) This string is now decrypted using AES and verified using the mac
+    5) This string is now decrypted using AES and verified using the MAC
     6) Finally, the resulting string is returned
   """
   try:
