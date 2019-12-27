@@ -8,7 +8,7 @@ if __name__ == "__main__":
   if os.path.exists('user_key.png'):
     key_list = get_list_from_key('user_key.png')
   else:
-    user_key, key_list = create_user_key(str(uuid4()))
+    create_user_key(str(uuid4()))
     print("Run tests again to encrypt/decrypt test message.")
     os._exit(1)
   result, message = encrypt_w_user_key(key_list, src_str)

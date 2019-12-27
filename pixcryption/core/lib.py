@@ -1,7 +1,7 @@
 import numpy as np
 from PIL import Image
 from uuid import uuid4
-from math import sqrt
+from math import sqrt, floor
 from Crypto.Cipher import AES
 from Crypto import Random
 from base64 import b64encode
@@ -14,20 +14,44 @@ import traceback
 """
 The primary method by which this program works is:-
 
+The user_key is created first;
+
   1) A list of definite size is created, this is referred to as fresh
+     Another list of definite size is created, this is called pixels
+  
+     The size of fresh and pixels is always `square_root(1114112) + 1`
+     1114112 being the code point for unicode characters
 
-     The size of this list is dependent on external factors such as string length
+  2) A shuffled cartesian product of 4 lists of range(0, 256) is taken and it is
+     iterated through, adding in each item from this list to fresh
 
-  2) A fixed list is taken and it is iterated through, adding in each item from 
-     this list to fresh, until either fresh is filled or the list is exhausted
+     Once fresh is filled, it is added in to pixels, which is a list of lists
 
-     What this list will contain also depends on external factors such as the string 
-     itself
+     Once pixels is filled, the iteration stops
 
-  3) This process ultimately fills up another object, pixels, which is a list of list of 
-     tuples
-     
-     This pixels object is turned into an array using numpy and an image is created
+  3) This pixels object is turned into an array using numpy and an image is created
+
+The encrypted_msg.png is created like so;
+
+  1) The source string is AES encrypted
+
+  2) A list of definite size is created, this is referred to as fresh
+     Another list of definite size is created, this is called pixels
+  
+     The size of fresh and pixels is always depends on the string and keys
+
+  3) The keys are prepended to fresh
+     The encrypted_string is iterated through and specific tuples are added
+     to fresh accordingly
+
+     Once fresh is filled, it is added in to pixels, which is a list of lists
+
+     Once pixels is filled, the iteration stops
+
+  4) This pixels object is turned into an array using numpy and an image is created
+
+The decryption is basically a reversal of this encryption process
+  
 """
 
 def byte_to_tuples(tuple_size, byte_string, fill_value=None):
@@ -36,22 +60,38 @@ def byte_to_tuples(tuple_size, byte_string, fill_value=None):
   """
   return list(itertools.zip_longest(*[iter(byte_string)]*tuple_size, fillvalue=fill_value))
 
-def tuples_to_bytes(key_list):
+def extract_bytes_from_tuple(list_of_tuples, start, length):
   """
-  This function converts a list of integers into a byte string
-  """
-  return bytes(key_list)
-
-def extract_bytetuple(list_of_tuples, start, length):
-  """
-  This method breaks down the tuples in a list of tuples and returns a list of 
+  This function breaks down the tuples in a list of tuples and returns a list of 
   of the first n number of integers from p, where;
 
-  n = length, 16 for AES_key and MAC and 15 for NONCE
-  p = start, 0 for AES_key and NONCE and 15 for MAC
+  n = length, 16 for AES_key and mac and 15 for NONCE;
+  p = start, 0 for AES_key and NONCE and 16 for mac;
+
+  Then it converts the list of integers into a byte string and returns it
   """
   bytelist = list(itertools.chain(*list_of_tuples))
-  return bytelist[start:start+length]
+  return bytes(bytelist[start:start+length])
+
+def generate_random_pixelTuple(backlog):
+  """
+  This is an algorithm that can predict any tuple in the cartesian product of
+  4 lists of range(0, 256), given its index. This cartesian product is the same as 
+  `list(itertools.product(range(0, 256), repeat=4))`
+
+  It generates a random integer that hasn't already been used before and predicts
+  the tuple that exists in that index of the cartesian product
+  """
+  upper_limit = 256**4
+  index = random.randint(0, upper_limit)
+  while index in backlog:
+    index = random.randint(0, upper_limit)
+  
+  red = floor(index/256**3)
+  green = floor(index%256**3/256**2)
+  blue = floor(index%256**2/256)
+  alpha = index%256**2%256
+  return (red, green, blue, alpha), index
 
 def create_user_key(uuid):
   """
@@ -65,21 +105,19 @@ def create_user_key(uuid):
   The resulting pixel array is used to create the user_key img
   """
   print('Preparing To Generate User Key (This may take a while but will only run once!)')
-  allc = [i for i in itertools.product(range(256), repeat=3)]
-  print('Complete...')
   print('Randomizing Base Key...')
   random.seed(uuid)
-  random.shuffle(allc)
   print('Randomized...')
   print('Randomizing AES Key...')
   # Generating a cryptographically secure byte string of length 16
   AES_key = Random.get_random_bytes(AES.key_size[0])
-  AESls = byte_to_tuples(3, AES_key, 0)
+  AESls = byte_to_tuples(4, AES_key, 0)
   print('Randomized...')
+  #1114112 is the code point for unicode chars
   max_it = 1114112
   w = int(sqrt(max_it)) + 1
   pixels = []
-  key_list = [None] * max_it
+  backlog = set()
   fresh = [None] * w
   count = 0
   total = 0
@@ -88,22 +126,20 @@ def create_user_key(uuid):
   # Prepending the AES list (list of tuples of integers)
     fresh[count] = i
     count += 1
-  for i in allc:
-    if total == max_it:
-      break
+    total += 1
+  while total < max_it:
     if count == w:
       pixels.append(fresh)
       fresh = [None] * w
       count = 0
-    fresh[count] = i
-    key_list[total] = i
+    fresh[count], index = generate_random_pixelTuple(backlog)
+    backlog.add(index)
     count += 1
     total += 1
-  array = np.array(pixels, dtype=np.uint8)
+  array = np.array(pixels, dtype = np.uint8)
   new_image = Image.fromarray(array)
   new_image.save('user_key.png')
   print('Finished....')
-  return pixels, key_list
 
 def get_list_from_key(image_path):
   im = Image.open(image_path)
@@ -116,12 +152,12 @@ def encrypt_w_user_key(key_list, source_string):
     1) The source string is converted into a byte string
     2) A NONCE is generated and the AES_key is retrieved from user_key img
     3) A list is generated called NONCEls, this just a list of tuples form of NONCE
-    4) The source_string is encrypted in AES OCB mode, which returns the MAC byte 
+    4) The source_string is encrypted in AES OCB mode, which returns the mac byte 
        string
-    5) MACls is created in the same method as NONCEls
+    5) macls is created in the same method as NONCEls
     6) The encrypted string is encoded with b64 and converted into a string 
        (from byte_string)
-    7) NONCEls, MACls and the appropriate keys for each string char is stored 
+    7) NONCEls, macls and the appropriate keys for each string char is stored 
        sequentially
     8) Any Empty tuples in the final fresh (list) is filled with (0, 0, 0)
     9) An image is created with the array of pixels
@@ -132,11 +168,11 @@ def encrypt_w_user_key(key_list, source_string):
   try:
   # Generating a cryptographically secure byte string of length 15
     NONCE = Random.get_random_bytes(AES.block_size-1)
-    NONCEls = byte_to_tuples(3, NONCE, 0)
-    AES_key = tuples_to_bytes(extract_bytetuple(key_list, 0, 16))
+    NONCEls = byte_to_tuples(4, NONCE, 0)
+    AES_key = extract_bytes_from_tuple(key_list, 0, 16)
     cipher = AES.new(AES_key, AES.MODE_OCB, NONCE)
     ciphertxt, MAC = cipher.encrypt_and_digest(source_string)
-    MACls = byte_to_tuples(3, MAC, 0)
+    MACls = byte_to_tuples(4, MAC, 0)
   # ciphertxt is a byte string
     encrypted_string = b64encode(ciphertxt).decode()
   # ciphertext is encoded into another byte string and then decoded into a string
@@ -156,7 +192,7 @@ def encrypt_w_user_key(key_list, source_string):
       fresh[count] = i
       count += 1
     for i in MACls:
-    # Prepending the MAC list (list of tuples of integers)
+    # Prepending the mac list (list of tuples of integers)
       if count == w:
         pixels.append(fresh)
         fresh = [None] * w
@@ -175,14 +211,14 @@ def encrypt_w_user_key(key_list, source_string):
 
     while int(w - count) != 0:
     # Filling in the [None] tuples
-      pixels[-1][count] = (0, 0, 0)
+      pixels[-1][count] = (0, 0, 0, 0)
       count += 1
 
     array = np.array(pixels, dtype=np.uint8)
     uid = str(uuid4()).split('-')[0]
     new_image = Image.fromarray(array)
     new_image.save('enc_msg_{}.png'.format(uid))
-    
+
     return True, 'enc_msg_{}.png'.format(uid)
   except Exception as e:
     traceback.print_exc()
@@ -192,32 +228,32 @@ def decrypt_with_user_key(user_key, image_path):
   """
   This function works in multiple steps:-
 
-    1) The NONCE and MAC are extracted from the list of pixel tuples in 
+    1) The NONCE and mac are extracted from the list of pixel tuples in 
        encrypted string img
     2) The AES_key is retrieved from user_key img
     3) Key_tuples are looked up and their indexes are used to return a 
        character accordingly
     4) The resulting list is then turned into a string and decoded with b64
-    5) This string is now decrypted using AES and verified using the MAC
+    5) This string is now decrypted using AES and verified using the mac
     6) Finally, the resulting string is returned
   """
   try:
     # get image pixels
     str_pixels = get_list_from_key(image_path)
-    NONCE = tuples_to_bytes(extract_bytetuple(str_pixels, 0, 15))
-    MAC = tuples_to_bytes(extract_bytetuple(str_pixels, 15, 16))
+    NONCE = extract_bytes_from_tuple(str_pixels, 0, 15)
+    MAC = extract_bytes_from_tuple(str_pixels, 16, 16)
     # get user pixels
     user_key_pixels = get_list_from_key(user_key)
-    AES_key = tuples_to_bytes(extract_bytetuple(user_key_pixels, 0, 16))
+    AES_key = extract_bytes_from_tuple(user_key_pixels, 0, 16)
     user_map = [None] * len(user_key_pixels)
     str_list = []
     skip = 0
     for i in str_pixels:
-    # The first 11 tuples are for NONCE and mac
-      if skip < 11:
+    # The first 6 tuples are the IV values
+      if skip < 8:
         skip += 1
         continue
-      if i != (0,0,0):
+      if i != (0, 0, 0, 0):
         str_list.append(chr(user_key_pixels.index(i)))
 
     # Undo what was done in encrypt
@@ -226,7 +262,7 @@ def decrypt_with_user_key(user_key, image_path):
     cipher = AES.new(AES_key, AES.MODE_OCB, NONCE)
     source_string = cipher.decrypt_and_verify(ciphertxt, MAC).decode()
 
-    return True, source_string   
+    return True, source_string
   except Exception as e:
     traceback.print_exc()
     return False, ""
