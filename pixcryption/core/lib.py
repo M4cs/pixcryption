@@ -137,7 +137,7 @@ def create_user_key(uuid):
     count += 1
     total += 1
   array = np.array(pixels, dtype = np.uint8)
-  new_image = Image.fromarray(array)
+  new_image = Image.fromarray(array, 'RGBA')
   new_image.save('user_key.png')
   print('Finished....')
 
@@ -216,7 +216,7 @@ def encrypt_w_user_key(key_list, source_string):
 
     array = np.array(pixels, dtype=np.uint8)
     uid = str(uuid4()).split('-')[0]
-    new_image = Image.fromarray(array)
+    new_image = Image.fromarray(array, 'RGBA')
     new_image.save('enc_msg_{}.png'.format(uid))
 
     return True, 'enc_msg_{}.png'.format(uid)
