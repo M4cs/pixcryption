@@ -11,12 +11,6 @@ import random
 import os
 import traceback
 
-# Store the constant values in a file to reduce time
-# Need to use 4-int tuples but MemoryError
-# ADD DOCS (for code)
-# Try to improve performance on extract_bytetuple when decrypting (VERY LONG LIST)
-
-
 """
 The primary method by which this program works is:-
 
