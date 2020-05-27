@@ -7,5 +7,5 @@ description = "📷 Pixel Safe Encryption - Now Cryptographically Secure 🔒"
 [tool.poetry.dependencies]
 numpy = "*"
 pillow = "*"
-pycrypto = "*"
+pycryptodome = "*"
 python = "^3.7"
