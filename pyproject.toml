@@ -3,6 +3,7 @@
 authors = ["Max Bridgland <mabridgland@protonmail.com>"]
 name = "pixcryption"
 version = "0.0.1"
+description = "📷 Pixel Safe Encryption - Now Cryptographically Secure 🔒"
 [tool.poetry.dependencies]
 numpy = "*"
 pillow = "*"
