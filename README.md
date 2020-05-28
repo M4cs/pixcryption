@@ -21,7 +21,7 @@ Pixcryption's goal is to offer a new form of steganography/encryption through im
 
 # Requirements
 
-- Python 3.6+
+- Python 3.7+
 - Pillow
 - Numpy
 - PyCryptodome
